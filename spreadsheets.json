@@ -1,0 +1,19 @@
+{
+    "dirs":{
+        "gestao_desempenho":{
+            "spreadsheet_route":"files\\A",
+            "spreadsheets_files":[
+                "Slave 1",
+                "Slave 2"
+            ]
+        },
+        "tubos_comercial":{
+            "spreadsheet_route":"files\\B",
+            "spreadsheets_files":[
+                "Slave 3",
+                "Slave 4"
+            ]
+        }
+    },
+    "spreadsheet_type":"xlsx"
+}
