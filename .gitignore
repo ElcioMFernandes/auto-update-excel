@@ -1,3 +1,6 @@
 log
 venv
 files
+build
+dist
+main.spec
