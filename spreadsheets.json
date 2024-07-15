@@ -1,19 +1,20 @@
 {
-    "dirs":{
-        "gestao_desempenho":{
-            "spreadsheet_route":"files\\A",
-            "spreadsheets_files":[
-                "Slave 1",
-                "Slave 2"
-            ]
-        },
-        "tubos_comercial":{
-            "spreadsheet_route":"files\\B",
-            "spreadsheets_files":[
-                "Slave 3",
-                "Slave 4"
-            ]
-        }
+    "gestao_desempenho":{
+        "owner":"Alexandre Torres",
+        "route":"C:\\Users\\elcio.mateus\\Documents\\Élcio\\auto excel pci(Alexandre Torres)\\files\\A",
+        "type":"xlsx",
+        "files":[
+            "Slave 1",
+            "Slave 2"
+        ]
     },
-    "spreadsheet_type":"xlsx"
+    "tubos_comercial":{
+        "owner":"Alexandre Torres",
+        "route":"C:\\Users\\elcio.mateus\\Documents\\Élcio\\auto excel pci(Alexandre Torres)\\files\\B",
+        "type":"xlsx",
+        "files":[
+            "Slave 3",
+            "Slave 4"
+        ]
+    }
 }
