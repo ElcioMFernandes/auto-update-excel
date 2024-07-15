@@ -2,40 +2,52 @@ import win32com.client as win32
 import os, json, logging, sys, datetime
 from tkinter import messagebox
 
-if os.path.isdir(os.path.join(os.getcwd(),'log')) == False:
-    os.makedirs('log')
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=f"log\{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log",
-                    filemode='a',
-                    encoding='utf-8')
-
 class AutoUpdate:
     __excelApp = None
-    __JsonFile = None
+    __jsonFile = None
     __jsonData = None
     
-    def setJsonFile(self, jsonFile) -> None:
-        self.__JsonFile = jsonFile
+    def setJsonFile(self, jsonFile:str) -> None:
+        """
+        Set a value to the private jsonFile attribute.
+        """
+        self.__jsonFile = jsonFile
 
     def getJsonFile(self) -> str:
-        return self.__JsonFile
+        """
+        Get on jsonFile private attribute value.
+        """
+        return self.__jsonFile
     
-    def setJsonData(self, jsonData) -> None:
+    def setJsonData(self, jsonData:dict) -> None:
+        """
+        Set a value to the private jsonData attribute.
+        """
         self.__jsonData = jsonData
 
     def getJsonData(self) -> dict:
+        """
+        Get on jsonData private attribute value.
+        """
         return self.__jsonData
 
     def setExcelApp(self) -> None:
+        """
+        Set in the excelApp private attribute that stores the win32com library object.
+        """
         self.__excelApp = win32.gencache.EnsureDispatch('Excel.Application')
         self.__excelApp.Visible = False
 
     def getExcelApp(self) -> object:
+        """
+        Returns the ExcelApp object from the win32com library.
+        """
         return self.__excelApp
 
     def __init__(self) -> None:
+        """
+        Class constructor.
+        """
         logging.info("Construtor inicializado.")
         
         try:
@@ -69,6 +81,9 @@ class AutoUpdate:
             sys.exit(1)
 
     def main(self) -> None:
+        """
+        Main application method.
+        """
         try: 
             for directory, information in self.getJsonData().items():
                 logging.info(f"Chave: {directory}.")
@@ -108,7 +123,10 @@ class AutoUpdate:
             logging.error(e)
             sys.exit(1)
 
-    def update(self, fileToUpdate) -> None:
+    def update(self, fileToUpdate:str) -> None:
+        """
+        Method that updates data in the spreadsheet.
+        """
         logging.info(f"Iniciando atualização do arquivo {fileToUpdate}")
         
         try:
@@ -135,6 +153,9 @@ class AutoUpdate:
             logging.error(f"Erro ao abrir o arquivo: {e}")
 
     def createJson(self):
+        """
+        Method for creating a json template if it does not exist.
+        """
         data = {
             "nome_identificacao_chave": {
                 "owner": "proprietario_pasta",
@@ -160,6 +181,15 @@ class AutoUpdate:
             json.dump(data, json_file, indent=4)
 
 if __name__ == '__main__':
+    if os.path.isdir(os.path.join(os.getcwd(),'log')) == False:
+        os.makedirs('log')
+
+    logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename=f"log\{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log",
+                    filemode='a',
+                    encoding='utf-8')
+
     app = AutoUpdate()
     app.main()
     
