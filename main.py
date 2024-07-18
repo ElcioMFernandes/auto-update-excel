@@ -181,12 +181,12 @@ class AutoUpdate:
             json.dump(data, json_file, indent=4)
 
 if __name__ == '__main__':
-    if os.path.isdir(os.path.join(os.getcwd(),'log')) == False:
-        os.makedirs('log')
+    if os.path.isdir(os.path.join(os.getcwd(),'historic')) == False:
+        os.makedirs('historic')
 
     logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=f"log\{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log",
+                    filename=f"historic\{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log",
                     filemode='a',
                     encoding='utf-8')
 

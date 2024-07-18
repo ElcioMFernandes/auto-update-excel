@@ -4,3 +4,4 @@ files
 build
 dist
 main.spec
+files\*
