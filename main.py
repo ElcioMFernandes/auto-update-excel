@@ -36,7 +36,7 @@ class AutoUpdate:
         Set in the excelApp private attribute that stores the win32com library object.
         """
         self.__excelApp = win32.gencache.EnsureDispatch('Excel.Application')
-        self.__excelApp.Visible = False
+        self.__excelApp.Visible = True
 
     def getExcelApp(self) -> object:
         """
@@ -48,24 +48,14 @@ class AutoUpdate:
         """
         Class constructor.
         """
-        logging.info("Construtor inicializado.")
-        
         try:
-            self.setExcelApp()
-            logging.info("ExcelApp inicializado.")
-        
+            self.setExcelApp()        
             if os.path.isfile(os.path.join(os.getcwd(),'spreadsheets.json')):
-        
                 try:
                     self.setJsonFile('spreadsheets.json')
-                    logging.info("Arquivo Json setado.")
-        
-                    try:
-        
+                    try:        
                         with open(self.getJsonFile(), 'r', encoding='utf-8') as jsonFileRead:
                             self.setJsonData(json.load(jsonFileRead))                        
-                            logging.info("Arquivo Json lido.")
-        
                     except Exception as e:
                         logging.error(f"Falha ao ler arquivo de configuração: {e}")
                         self.getExcelApp().Quit()
@@ -86,36 +76,34 @@ class AutoUpdate:
         """
         try: 
             for directory, information in self.getJsonData().items():
-                logging.info(f"Chave: {directory}.")
-
                 if os.path.isdir(information['route']):
-                    logging.info(f"Rota de {directory} existente.")
-
-                    for file in information['files']:
-                        logging.info(f"Arquivo: {file}")
-
+                    logging.info(f"+{directory.replace('_', ' ').capitalize()}")
+                    logging.info(f"|__{information['route']}")                    
+                
+                    for i, file in enumerate(information['files']):
+                        is_last_file = i == len(information['files']) - 1
+                        logging.info(f"   |__Arquivo: {file}")
+                
                         if os.path.isfile(os.path.join(information['route'], f"{file}.{information['type']}")):
-                            logging.info(f"Arquivo: {file} existente.")
-                            self.update(os.path.join(information['route'], f"{file}.{information['type']}"))
-                        
+                            self.update(os.path.join(information['route'], f"{file}.{information['type']}"), is_last_file)
+                
                         else:
                             logging.error(f"O arquivo {file}, indicado em {directory} não existe")
                             pass
-
+                        
                 else:
                     logging.error(f"A rota indicada em {directory} não existe")
                     pass
 
             else:
-                logging.info("Fechando ExcelApp e encerrando aplicação.")
                 self.getExcelApp().Quit()
                 sys.exit(0)
 
         except AttributeError:
             self.getExcelApp().Quit()
             self.createJson()
-            messagebox.showerror(f"Erro","Arquivo Json vazio ou inexistente, preencher corretamente.\nEm caso de dúvida no preenchimento contatar Élcio TIC.")
-            logging.error("Fim da aplicação por conta de json mal configurado ou inexistente.")
+            messagebox.showerror(f"Erro","Arquivo Json vazio ou inexistente.")
+            logging.error("Arquivo Json vazio ou inexistente.")
             sys.exit(1)
 
         except Exception as e:
@@ -123,31 +111,28 @@ class AutoUpdate:
             logging.error(e)
             sys.exit(1)
 
-    def update(self, fileToUpdate:str) -> None:
+    def update(self, fileToUpdate:str, last_file) -> None:
         """
         Method that updates data in the spreadsheet.
         """
-        logging.info(f"Iniciando atualização do arquivo {fileToUpdate}")
-        
         try:
             workbook = self.getExcelApp().Workbooks.Open(fileToUpdate)
-            logging.info("Workbook iniciado.")
         
             try:
                 self.getExcelApp().ActiveWorkbook.RefreshAll()
-                logging.info("Arquivo atualizado.")
-        
                 try:
                     workbook.Save()
-                    logging.info("Arquivo salvo.")
                     workbook.Close()
-                    logging.info("Workbook fechado.")
+                    if last_file:
+                        logging.info("      |__Arquivo atualizado.\n")
+                    else:
+                        logging.info("   |  |__Arquivo atualizado.")
         
                 except Exception as e:
-                    logging.error(f"Erro ao salvar ou fechar: {e}")
+                    logging.error(f"Erro ao salvar ou fechar arquivo: {e}")
         
             except Exception as e:
-                logging.error(f"Erro ao atualizar tudo: {e}")
+                logging.error(f"Erro ao tentar atualizar: {e}")
         
         except Exception as e:
             logging.error(f"Erro ao abrir o arquivo: {e}")
