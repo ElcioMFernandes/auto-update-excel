@@ -1,0 +1,14 @@
+{
+  "gestao_desempenho": {
+    "owner": "Alexandre Torres",
+    "route": "C:\\Users\\elcio.mateus\\OneDrive - TUPER SA\\A",
+    "type": "xlsx",
+    "files": ["Slave 1", "Slave 2"]
+  },
+  "tubos_comercial": {
+    "owner": "Alexandre Torres",
+    "route": "C:\\Users\\elcio.mateus\\OneDrive - TUPER SA\\B",
+    "type": "xlsx",
+    "files": ["Slave 3", "Slave 4"]
+  }
+}

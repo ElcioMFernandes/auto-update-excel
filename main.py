@@ -50,9 +50,9 @@ class AutoUpdate:
         """
         try:
             self.setExcelApp()        
-            if os.path.isfile(os.path.join(os.getcwd(),'spreadsheets.json')):
+            if os.path.isfile(os.path.join(os.getcwd(),'settings.json')):
                 try:
-                    self.setJsonFile('spreadsheets.json')
+                    self.setJsonFile('settings.json')
                     try:        
                         with open(self.getJsonFile(), 'r', encoding='utf-8') as jsonFileRead:
                             self.setJsonData(json.load(jsonFileRead))                        
@@ -65,6 +65,12 @@ class AutoUpdate:
                     logging.error(f"Falha ao setar o arquivo de configuração: {e}")
                     self.getExcelApp().Quit()
                     sys.exit(1)
+            else:
+                self.getExcelApp().Quit()
+                self.createJson()
+                messagebox.showerror(f"Erro","Arquivo Json vazio ou inexistente.")
+                logging.error("Arquivo Json vazio ou inexistente.")
+                sys.exit(1)
 
         except Exception as e:
             logging.error(f"Falha ao iniciar aplicativo: {e}")
@@ -90,7 +96,7 @@ class AutoUpdate:
                         else:
                             logging.error(f"O arquivo {file}, indicado em {directory} não existe")
                             pass
-                        
+
                 else:
                     logging.error(f"A rota indicada em {directory} não existe")
                     pass
@@ -162,7 +168,7 @@ class AutoUpdate:
             }
         }
 
-        with open('spreadsheets.json', 'w') as json_file:
+        with open('settings.json', 'w') as json_file:
             json.dump(data, json_file, indent=4)
 
 if __name__ == '__main__':
