@@ -1,6 +1,7 @@
 import win32com.client as win32
 import os, json, logging, sys, datetime
 from tkinter import messagebox
+#import schedule
 
 class AutoUpdate:
     __excelApp = None
@@ -48,14 +49,16 @@ class AutoUpdate:
         """
         Class constructor.
         """
+        logging.info("Iniciando construtor")
         try:
-            self.setExcelApp()        
-            if os.path.isfile(os.path.join(os.getcwd(),'settings.json')):
+            self.setExcelApp()
+            if os.path.isfile(os.path.join(os.getcwd(),'spreadsheets.json')):
                 try:
-                    self.setJsonFile('settings.json')
+                    self.setJsonFile('spreadsheets.json')
                     try:        
                         with open(self.getJsonFile(), 'r', encoding='utf-8') as jsonFileRead:
-                            self.setJsonData(json.load(jsonFileRead))                        
+                            self.setJsonData(json.load(jsonFileRead))
+                            logging.info("Construtor finalizado.")                      
                     except Exception as e:
                         logging.error(f"Falha ao ler arquivo de configuração: {e}")
                         self.getExcelApp().Quit()
@@ -68,7 +71,7 @@ class AutoUpdate:
             else:
                 self.getExcelApp().Quit()
                 self.createJson()
-                messagebox.showerror(f"Erro","Arquivo Json vazio ou inexistente.")
+                messagebox.showerror(f"Erro no init","Arquivo Json vazio ou inexistente.")
                 logging.error("Arquivo Json vazio ou inexistente.")
                 sys.exit(1)
 
@@ -80,6 +83,7 @@ class AutoUpdate:
         """
         Main application method.
         """
+        logging.info("Iniciando bloco principal.\n")
         try: 
             for directory, information in self.getJsonData().items():
                 if os.path.isdir(information['route']):
@@ -103,12 +107,13 @@ class AutoUpdate:
 
             else:
                 self.getExcelApp().Quit()
+                logging.info("Finalizado todos os arquivos.")
                 sys.exit(0)
 
         except AttributeError:
             self.getExcelApp().Quit()
             self.createJson()
-            messagebox.showerror(f"Erro","Arquivo Json vazio ou inexistente.")
+            messagebox.showerror(f"Erro na main","Arquivo Json vazio ou inexistente.")
             logging.error("Arquivo Json vazio ou inexistente.")
             sys.exit(1)
 
@@ -168,19 +173,23 @@ class AutoUpdate:
             }
         }
 
-        with open('settings.json', 'w') as json_file:
+        with open('spreadsheets.json', 'w') as json_file:
             json.dump(data, json_file, indent=4)
 
 if __name__ == '__main__':
-    if os.path.isdir(os.path.join(os.getcwd(),'historic')) == False:
-        os.makedirs('historic')
+    if os.path.isdir(os.path.join(os.getcwd(),'log')) == False:
+        os.makedirs('log')
 
     logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=f"historic\{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log",
+                    filename=os.path.join(os.getcwd(),'log',f"{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log"),
                     filemode='a',
                     encoding='utf-8')
 
-    app = AutoUpdate()
-    app.main()
+    try:
+        app = AutoUpdate()
+        logging.info("Instância do objeto AutoUpdate inicializada.")
+        app.main()
+    except Exception as e:
+        logging.error(e)
     

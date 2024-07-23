@@ -1,5 +1,6 @@
-\spreadsheets.json
+*.json
+*.spec
 venv
-historic
-files\*
-
+log
+dist
+build
