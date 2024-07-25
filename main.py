@@ -37,7 +37,7 @@ class AutoUpdate:
         Set in the excelApp private attribute that stores the win32com library object.
         """
         self.__excelApp = win32.gencache.EnsureDispatch('Excel.Application')
-        self.__excelApp.Visible = True
+        self.__excelApp.Visible = False
 
     def getExcelApp(self) -> object:
         """
@@ -52,7 +52,7 @@ class AutoUpdate:
         logging.info("Iniciando construtor")
         try:
             self.setExcelApp()
-            if os.path.isfile(os.path.join(os.getcwd(),'spreadsheets.json')):
+            if os.path.isfile(os.path.join('C:\\Users', os.getlogin(), 'auto update','spreadsheets.json')):
                 try:
                     self.setJsonFile('spreadsheets.json')
                     try:        
@@ -177,12 +177,12 @@ class AutoUpdate:
             json.dump(data, json_file, indent=4)
 
 if __name__ == '__main__':
-    if os.path.isdir(os.path.join(os.getcwd(),'log')) == False:
+    if os.path.isdir(os.path.join('C:\\Users', os.getlogin(), 'auto update','log')) == False:
         os.makedirs('log')
 
     logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=os.path.join(os.getcwd(),'log',f"{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log"),
+                    filename=os.path.join('C:\\Users', os.getlogin(), 'auto update','log',f"{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')}.log"),
                     filemode='a',
                     encoding='utf-8')
 
