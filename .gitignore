@@ -4,3 +4,5 @@ venv
 log
 dist
 build
+*.ico
+pyinstaller command.txt
