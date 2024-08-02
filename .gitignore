@@ -6,3 +6,4 @@ dist
 build
 *.ico
 pyinstaller command.txt
+*.xlsx
