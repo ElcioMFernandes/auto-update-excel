@@ -199,49 +199,46 @@ class AutoUpdate:
             sys.exit(1)
 
     def __update(self, fileToUpdate: str, lastFile: bool) -> None:
-        """ Método utilizado para atualizar planilhas.\n
-        fileToUpdate: String com o caminho até a planilha.\n
+        """ Método utilizado para atualizar planilhas.
+        fileToUpdate: String com o caminho até a planilha.
         lastFile: Bool indicando se é o último arquivo.
         """
-        # Bloco try para captura de erros.
         try:
             # Cria uma instância de um workbook com o arquivo passado por parâmetro.
             workbook = self.__getExcelApp().Workbooks.Open(fileToUpdate)
-            # Bloco try para captura de erros.
             try:
-                # Faz a atualização dos dados.
-                self.__getExcelApp().ActiveWorkbook.RefreshAll()
+                # Atualiza cada conexão OLEDB individualmente.
+                for i, connection in enumerate(workbook.Connections):
+                    if connection.Type == 2:  # Verifica se é uma conexão OLEDB
+                        connection.OLEDBConnection.Refresh()
+
+                        # Espera até que a conexão seja atualizada.
+                        while connection.OLEDBConnection.Refreshing:
+                            time.sleep(1)  # Aguarda 1 segundo antes de verificar novamente
+                
+                # Atualiza todas as conexões restantes.
+                workbook.RefreshAll()
                 
                 # Espera até que todas as consultas em segundo plano sejam concluídas.
                 while any(connection.Refreshing for connection in workbook.Connections):
                     time.sleep(1)  # Aguarda 1 segundo antes de verificar novamente
 
-                # Bloco try para captura de erros.
                 try:
                     # Salva o workbook.
                     workbook.Save()
                     # Fecha o workbook.
                     workbook.Close()
-                    # Se for o último arquivo
                     if lastFile:
-                        # Informações de log.
                         logging.info("      |__Arquivo atualizado.\n")
-                    # Se não for o último arquivo.
                     else:
-                        # Informações de log.
                         logging.info("   |  |__Arquivo atualizado.")
-                # Em caso de erro.
                 except Exception as e:
-                    # Informações de log.
                     logging.error(f"Erro ao salvar ou fechar arquivo: {e}")
-            # Em caso de erro.
             except Exception as e:
-                # Informações de log.
                 logging.error(f"Erro ao tentar atualizar: {e}")        
-        # Em caso de erro.
         except Exception as e:
-            # Informações de log.
             logging.error(f"Erro ao abrir o arquivo: {e}")
+
 
     def __createJson(self):
         """ Method for creating a json template if it does not exist. """
