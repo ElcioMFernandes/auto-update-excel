@@ -55,6 +55,8 @@ class AutoUpdate:
         """ Atribui a a __excelApp a instância de Excel.Application. """
         self.__excelApp = win32.gencache.EnsureDispatch('Excel.Application')
         self.__excelApp.Visible = self.__getVisible()
+        self.__excelApp.DisplayAlerts = False
+        self.__excelApp.AskToUpdateLinks = False
 
     def __getExcelApp(self) -> object:
         """ Retorna o objeto de __excelApp. """
@@ -116,6 +118,7 @@ class AutoUpdate:
                             self.__getExcelApp().Quit()
                             # Encerra o programa.
                             sys.exit(1)
+
             # Em caso de erro.
             except Exception as e:
                 # Informações de log.
@@ -123,6 +126,7 @@ class AutoUpdate:
                 # Encerra o programa.
                 sys.exit(1)
         # Se o arquivo spreadsheets.json não existir, cria um exemplo e encerra o programa.
+
         else:
             # Chama a função __createJson para criar um template do json.
             self.__createJson()
@@ -137,40 +141,39 @@ class AutoUpdate:
         logging.info("Iniciando método main.\n")
         # Bloco try para captura de erros.
         try:
+            json_data = self.__getJsonData()
+            directories = [d for d in json_data.items() if d[0] != 'settings' and os.path.isdir(d[1]['route'])]
+            total_directories = len(directories)
+            processed_directories = 0
+
             # Para cada dicionário, chave no dict __jsonData.
-            for directory, information in self.__getJsonData().items():
-                # Se o dicionário for diferente de settings e o valor da chave route existir.
-                if directory != 'settings' and os.path.isdir(information['route']):
-                    # Informações de log.
-                    logging.info(f"+{directory.replace('_', ' ').capitalize()}")
-                    # Informações de log.
-                    logging.info(f"|__{information['route']}")
-                    # Para cada arquivo do array da chave files.
-                    for i, file in enumerate(information['files']):
-                        # Verifica se é o último arquivo.
-                        is_last_file = i == len(information['files']) - 1
-                        # Informações de log
-                        logging.info(f"   |__Arquivo: {file}")
-                        # Se o arquivo existir.
-                        if os.path.isfile(os.path.join(information['route'], f"{file}.{information['type']}")):
-                            # Chama o método __update para o arquivo.
-                            self.__update(os.path.join(information['route'], f"{file}.{information['type']}"), is_last_file)
-                            # Coloca o programa para dormir pelo periódo indicado em __interval(em segundos).
+            for directory, information in directories:
+                processed_directories += 1
+                is_last_directory = processed_directories == total_directories
+                # Informações de log.
+                logging.info(f"+{directory.replace('_', ' ').capitalize()}")
+                # Informações de log.
+                logging.info(f"|__{information['route']}")
+                # Para cada arquivo do array da chave files.
+                for i, file in enumerate(information['files']):
+                    # Verifica se é o último arquivo.
+                    is_last_file = i == len(information['files']) - 1
+                    # Informações de log
+                    logging.info(f"   |__Arquivo: {file}")
+                    # Se o arquivo existir.
+                    if os.path.isfile(os.path.join(information['route'], f"{file}.{information['type']}")):
+                        # Chama o método __update para o arquivo.
+                        self.__update(os.path.join(information['route'], f"{file}.{information['type']}"), is_last_file)
+                        # Coloca o programa para dormir pelo período indicado em __interval (em segundos).
+                        if not (is_last_file and is_last_directory):
                             time.sleep(self.__getInterval())
-                        # Se o arquivo não existir
-                        else:
-                            # Informações de log.
-                            logging.error(f"O arquivo {file}, indicado em {directory} não existe")
-                            # Passa para o próximo
-                            pass
-                # Se o diretório não existir.
-                else:
-                    # Se o diretório é diferente de settings.
-                    if directory != 'settings':
+                    # Se o arquivo não existir
+                    else:
                         # Informações de log.
-                        logging.error(f"A rota indicada em {directory} não existe")
-                    # Vai para o próximo.
-                    pass
+                        logging.error(f"O arquivo {file}, indicado em {directory} não existe")
+                        # Passa para o próximo
+                        pass
+
             # Bloco else para quando o loop terminar.
             else:
                 # Fecha o excel.
@@ -179,6 +182,7 @@ class AutoUpdate:
                 logging.info("Finalizado todos os arquivos.")
                 # Encerra o programa.
                 sys.exit(0)
+
         # Em caso de erro.
         except AttributeError:
             # Fecha o excel.
@@ -189,6 +193,7 @@ class AutoUpdate:
             logging.error("Arquivo Json vazio ou inexistente.")
             # Encerra o programa.
             sys.exit(1)
+
         # Em caso de erro.
         except Exception as e:
             # Fecha o excel.
@@ -203,37 +208,46 @@ class AutoUpdate:
         fileToUpdate: String com o caminho até a planilha.
         lastFile: Bool indicando se é o último arquivo.
         """
+        connection_types = {
+            1: "OLEDBConnection",
+            2: "ODBCConnection",
+            3: "WebConnection",
+            4: "TextConnection",
+            5: "WorksheetConnection",
+            6: "ModelConnection",
+        }
+
         try:
             # Cria uma instância de um workbook com o arquivo passado por parâmetro.
-            workbook = self.__getExcelApp().Workbooks.Open(fileToUpdate)
+            workbook = self.__getExcelApp().Workbooks.Open(fileToUpdate, UpdateLinks=False)
             try:
-                # Atualiza cada conexão OLEDB individualmente.
-                for i, connection in enumerate(workbook.Connections):
-                    if connection.Type == 2:  # Verifica se é uma conexão OLEDB
-                        connection.OLEDBConnection.Refresh()
-
-                        # Espera até que a conexão seja atualizada.
-                        while connection.OLEDBConnection.Refreshing:
-                            time.sleep(1)  # Aguarda 1 segundo antes de verificar novamente
-                
-                # Atualiza todas as conexões restantes.
-                workbook.RefreshAll()
-                
-                # Espera até que todas as consultas em segundo plano sejam concluídas.
-                while any(connection.Refreshing for connection in workbook.Connections):
-                    time.sleep(1)  # Aguarda 1 segundo antes de verificar novamente
-
-                try:
-                    # Salva o workbook.
-                    workbook.Save()
-                    # Fecha o workbook.
-                    workbook.Close()
-                    if lastFile:
-                        logging.info("      |__Arquivo atualizado.\n")
+                # Atualiza cada conexão individualmente.
+                for i, conn in enumerate(workbook.Connections):
+                    is_last_conn = i == len(workbook.Connections) - 1
+                    logging.info(f"   |  |__Conexão {conn.Name}.")
+                    connType = connection_types.get(conn.Type)
+                    if connType:
+                        try:
+                            getattr(conn, connType).Refresh()
+                            if is_last_conn:
+                                logging.info(f"   |__|  |__Conexão atualizada.")
+                            else:
+                                logging.info(f"   |  |  |__Conexão atualizada.")
+                        except Exception as e:
+                            logging.error(f"   |  |  |__Erro ao atualizar conexão: {e}")
                     else:
-                        logging.info("   |  |__Arquivo atualizado.")
-                except Exception as e:
-                    logging.error(f"Erro ao salvar ou fechar arquivo: {e}")
+                        pass
+                else:
+                    try:
+                        # Fecha o workbook.
+                        workbook.Close(SaveChanges=True)
+                        if lastFile:
+                            logging.info("      |__Arquivo atualizado.\n")
+                        else:
+                            logging.info("   |  |__Arquivo atualizado.")
+                    except Exception as e:
+                        logging.error(f"Erro ao salvar ou fechar arquivo: {e}")
+
             except Exception as e:
                 logging.error(f"Erro ao tentar atualizar: {e}")        
         except Exception as e:
